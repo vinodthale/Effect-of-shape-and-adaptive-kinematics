@@ -2,6 +2,23 @@
 
 This repository contains an IBAMR-based simulation of an undulatory self-propelled foil (eel-like swimmer) with **adaptive kinematics** based on Reynolds number and foil thickness. The implementation studies the hydrodynamic performance across different flow regimes and geometric configurations.
 
+## ⚠️ Important: Two Separate Implementations
+
+**This repository contains the ADAPTIVE kinematics research code** for exploring Reynolds number and thickness effects.
+
+For **exact reproduction of Gupta et al. (2022)** with fixed parameters (Re=5000, St=0.6), see the separate validation suite:
+
+📁 **Validation Suite Location**: `/home/user/Validation-Gupta2022/`
+
+| This Repository (Adaptive) | Validation Suite (Separate) |
+|---------------------------|----------------------------|
+| Variable Re (1000-10000+) | Fixed Re = 5000 |
+| Adaptive kinematics | Exact Eqs. 3-6 from paper |
+| Research & parameter studies | Benchmarking & verification |
+| Multiple profiles evolving | 5 specific NACA profiles |
+
+See `QUICKSTART.md` in the validation suite for benchmarking instructions.
+
 ## Overview
 
 This code implements the research described in:
