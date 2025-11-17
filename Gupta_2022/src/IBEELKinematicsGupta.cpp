@@ -27,6 +27,24 @@
 namespace IBAMR
 {
 
+// Initialize static constants
+const double IBEELKinematicsGupta::GUPTA_A_MAX = 0.1;
+const double IBEELKinematicsGupta::GUPTA_RE = 5000.0;
+
+// Anguilliform parameters
+const double IBEELKinematicsGupta::GUPTA_ANG_LAMBDA = 0.65;
+const double IBEELKinematicsGupta::GUPTA_ANG_ALPHA = 2.18;
+
+// Carangiform parameters
+const double IBEELKinematicsGupta::GUPTA_CAR_LAMBDA = 1.0;
+const double IBEELKinematicsGupta::GUPTA_CAR_C0 = 0.02;
+const double IBEELKinematicsGupta::GUPTA_CAR_C1 = -0.08;
+const double IBEELKinematicsGupta::GUPTA_CAR_C2 = 0.16;
+
+// Prescribed Strouhal numbers
+const double IBEELKinematicsGupta::GUPTA_ST_LOW = 0.4;
+const double IBEELKinematicsGupta::GUPTA_ST_HIGH = 0.6;
+
 IBEELKinematicsGupta::IBEELKinematicsGupta(const std::string& object_name,
                                            Pointer<Database> input_db,
                                            LDataManager* l_data_manager,

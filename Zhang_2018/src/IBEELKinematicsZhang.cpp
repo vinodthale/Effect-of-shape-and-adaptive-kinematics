@@ -27,6 +27,13 @@
 namespace IBAMR
 {
 
+// Initialize static constants
+const double IBEELKinematicsZhang::ZHANG_A_MAX = 0.125;
+const double IBEELKinematicsZhang::ZHANG_ENVELOPE_C0 = 0.03125;
+const double IBEELKinematicsZhang::ZHANG_ENVELOPE_C1 = 1.03125;
+const double IBEELKinematicsZhang::ZHANG_ENVELOPE_POWER = 1.0;
+const double IBEELKinematicsZhang::ZHANG_WAVELENGTH = 1.0;
+
 IBEELKinematicsZhang::IBEELKinematicsZhang(const std::string& object_name,
                                            Pointer<Database> input_db,
                                            LDataManager* l_data_manager,

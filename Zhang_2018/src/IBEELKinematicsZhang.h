@@ -16,10 +16,15 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "../../IBEELKinematics.h"
+#include "IBEELKinematics.h"
 
+#include <ibtk/LDataManager.h>
+
+#include <PatchHierarchy.h>
 #include <tbox/Database.h>
 #include <tbox/Pointer.h>
+
+#include <string>
 
 namespace IBAMR
 {
@@ -88,11 +93,11 @@ private:
     void verifyZhangCompliance();
 
     // Zhang-specific constants (enforced)
-    static constexpr double ZHANG_A_MAX = 0.125;
-    static constexpr double ZHANG_ENVELOPE_C0 = 0.03125;
-    static constexpr double ZHANG_ENVELOPE_C1 = 1.03125;
-    static constexpr double ZHANG_ENVELOPE_POWER = 1.0;
-    static constexpr double ZHANG_WAVELENGTH = 1.0;
+    static const double ZHANG_A_MAX;
+    static const double ZHANG_ENVELOPE_C0;
+    static const double ZHANG_ENVELOPE_C1;
+    static const double ZHANG_ENVELOPE_POWER;
+    static const double ZHANG_WAVELENGTH;
 
 }; // IBEELKinematicsZhang
 

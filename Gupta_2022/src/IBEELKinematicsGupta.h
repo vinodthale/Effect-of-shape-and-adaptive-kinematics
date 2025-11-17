@@ -16,10 +16,15 @@
 
 /////////////////////////////// INCLUDES /////////////////////////////////////
 
-#include "../../IBEELKinematics.h"
+#include "IBEELKinematics.h"
 
+#include <ibtk/LDataManager.h>
+
+#include <PatchHierarchy.h>
 #include <tbox/Database.h>
 #include <tbox/Pointer.h>
+
+#include <string>
 
 namespace IBAMR
 {
@@ -120,22 +125,22 @@ private:
     double getCarangiformEnvelope(double X) const;
 
     // Gupta-specific constants (enforced)
-    static constexpr double GUPTA_A_MAX = 0.1;
-    static constexpr double GUPTA_RE = 5000.0;
+    static const double GUPTA_A_MAX;
+    static const double GUPTA_RE;
 
     // Anguilliform parameters
-    static constexpr double GUPTA_ANG_LAMBDA = 0.65;
-    static constexpr double GUPTA_ANG_ALPHA = 2.18;  // Exponential growth rate
+    static const double GUPTA_ANG_LAMBDA;
+    static const double GUPTA_ANG_ALPHA;  // Exponential growth rate
 
     // Carangiform parameters
-    static constexpr double GUPTA_CAR_LAMBDA = 1.0;
-    static constexpr double GUPTA_CAR_C0 = 0.02;
-    static constexpr double GUPTA_CAR_C1 = -0.08;
-    static constexpr double GUPTA_CAR_C2 = 0.16;
+    static const double GUPTA_CAR_LAMBDA;
+    static const double GUPTA_CAR_C0;
+    static const double GUPTA_CAR_C1;
+    static const double GUPTA_CAR_C2;
 
     // Prescribed Strouhal numbers
-    static constexpr double GUPTA_ST_LOW = 0.4;
-    static constexpr double GUPTA_ST_HIGH = 0.6;
+    static const double GUPTA_ST_LOW;
+    static const double GUPTA_ST_HIGH;
 
     // Mode-specific state
     SwimmingMode d_swimming_mode_gupta;
