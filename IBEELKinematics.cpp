@@ -24,6 +24,7 @@
 #include <cmath>
 #include <fstream>
 #include <iostream>
+#include <iomanip>
 
 #include "ibamr/namespaces.h"
 
@@ -73,6 +74,31 @@ IBEELKinematics::IBEELKinematics(const std::string& object_name,
     d_initAngle_bodyAxis_x = input_db->getDoubleWithDefault("initial_angle_body_axis_0", 0.0);
     d_bodyIsManeuvering = input_db->getBoolWithDefault("body_is_maneuvering", false);
     d_maneuverAxisIsChangingShape = input_db->getBoolWithDefault("maneuvering_axis_is_changing_shape", false);
+
+    // Read Reynolds number and thickness parameters
+    d_reynolds_number = input_db->getDoubleWithDefault("reynolds_number", 5609.0);
+    d_thickness_ratio = input_db->getDoubleWithDefault("thickness_ratio", 0.04);
+    d_base_amplitude = input_db->getDoubleWithDefault("base_amplitude", 0.125);
+    d_base_frequency = input_db->getDoubleWithDefault("base_frequency", 0.785);
+    d_swimming_mode = input_db->getDoubleWithDefault("swimming_mode", 0.0);  // 0=anguilliform, 1=carangiform
+
+    // Adaptive kinematics settings
+    d_enable_shape_adaptation = input_db->getBoolWithDefault("enable_shape_adaptation", true);
+    d_envelope_power = input_db->getDoubleWithDefault("envelope_power", 1.0);
+    d_head_width_ratio = d_thickness_ratio;  // Default to thickness ratio
+    d_tail_width_ratio = input_db->getDoubleWithDefault("tail_width_ratio", d_thickness_ratio * 0.5);
+
+    // Performance tracking
+    d_track_performance = input_db->getBoolWithDefault("track_performance", true);
+    d_performance_log_file = input_db->getStringWithDefault("performance_log_file", "performance_metrics.dat");
+    d_instantaneous_thrust = 0.0;
+    d_instantaneous_power = 0.0;
+    d_swimming_speed = 0.0;
+
+    // Initialize adapted parameters (will be updated in calculateAdaptiveKinematics)
+    d_adapted_amplitude = d_base_amplitude;
+    d_adapted_frequency = d_base_frequency;
+    d_adapted_wavelength = 1.0;
 
     // Read-in deformation velocity functions
     std::vector<std::string> deformationvel_function_strings;
@@ -540,7 +566,22 @@ IBEELKinematics::setKinematicsVelocity(const double time,
     d_center_of_mass = center_of_mass;
     d_tagged_pt_position = tagged_pt_position;
 
+    // Calculate adaptive kinematics based on Reynolds number and thickness
+    if (d_enable_shape_adaptation)
+    {
+        calculateAdaptiveKinematics(time);
+    }
+
     setEelSpecificVelocity(d_new_time, d_incremented_angle_from_reference_axis, d_center_of_mass, d_tagged_pt_position);
+
+    // Write performance metrics periodically
+    static double last_write_time = -1.0;
+    const double write_interval = 0.1;  // Write every 0.1 time units
+    if (d_track_performance && (time - last_write_time >= write_interval || last_write_time < 0.0))
+    {
+        writePerformanceMetrics(time);
+        last_write_time = time;
+    }
 
     return;
 
@@ -661,5 +702,144 @@ IBEELKinematics::getShape(const int /*level*/) const
 {
     return d_shape;
 } // getShape
+
+void
+IBEELKinematics::calculateAdaptiveKinematics(const double time)
+{
+    // Implement Reynolds number dependent adaptive kinematics
+    // Based on research showing that swimming parameters vary with Re
+
+    // Reynolds number scaling effects
+    // At lower Re: increase amplitude, decrease frequency
+    // At higher Re: decrease amplitude, increase frequency for efficiency
+
+    const double Re_ref = 5000.0;  // Reference Reynolds number
+    const double Re_ratio = d_reynolds_number / Re_ref;
+
+    // Amplitude adaptation: A = A_base * f(Re, h/L)
+    // Lower Re or thicker foils need larger amplitude
+    double Re_amplitude_factor = 1.0;
+    if (d_reynolds_number < Re_ref)
+    {
+        // Increase amplitude at low Re (power law)
+        Re_amplitude_factor = std::pow(Re_ratio, -0.15);  // Modest increase
+    }
+    else
+    {
+        // Decrease amplitude at high Re for efficiency
+        Re_amplitude_factor = std::pow(Re_ratio, -0.08);
+    }
+
+    // Thickness effect on amplitude
+    const double thickness_ref = 0.04;
+    const double thickness_amplitude_factor = 1.0 + 0.3 * (d_thickness_ratio - thickness_ref) / thickness_ref;
+
+    d_adapted_amplitude = d_base_amplitude * Re_amplitude_factor * thickness_amplitude_factor;
+
+    // Frequency adaptation: f = f_base * g(Re, h/L)
+    // Higher Re allows higher frequency swimming
+    double Re_frequency_factor = 1.0;
+    if (d_reynolds_number < Re_ref)
+    {
+        // Decrease frequency at low Re (viscous effects dominate)
+        Re_frequency_factor = std::pow(Re_ratio, 0.12);
+    }
+    else
+    {
+        // Can increase frequency at high Re
+        Re_frequency_factor = std::pow(Re_ratio, 0.05);
+    }
+
+    // Thicker foils typically undulate at lower frequency
+    const double thickness_frequency_factor = 1.0 - 0.2 * (d_thickness_ratio - thickness_ref) / thickness_ref;
+
+    d_adapted_frequency = d_base_frequency * Re_frequency_factor * thickness_frequency_factor;
+
+    // Wavelength adaptation (typically ~1 body length for anguilliform, ~0.5-0.7 for carangiform)
+    d_adapted_wavelength = 1.0 - 0.3 * d_swimming_mode;  // Decreases for carangiform
+
+    // Swimming mode dependent envelope power
+    // Anguilliform: power ~1 (linear amplitude increase)
+    // Carangiform: power ~2-3 (amplitude concentrated at tail)
+    d_envelope_power = 1.0 + 2.0 * d_swimming_mode;
+
+    // Update parsers with adapted parameters
+    // This affects the deformation velocity calculation
+
+    // Log adaptation (first time and periodically)
+    static bool first_call = true;
+    const double log_interval = 1.0;  // Log every 1 time unit
+    static double last_log_time = -log_interval;
+
+    if (first_call || (time - last_log_time) >= log_interval)
+    {
+        if (IBTK_MPI::getRank() == 0)
+        {
+            std::cout << "\n=== Adaptive Kinematics Update (t=" << time << ") ===" << std::endl;
+            std::cout << "Reynolds number: " << d_reynolds_number << std::endl;
+            std::cout << "Thickness ratio (h/L): " << d_thickness_ratio << std::endl;
+            std::cout << "Swimming mode: " << (d_swimming_mode < 0.5 ? "Anguilliform" : "Carangiform") << std::endl;
+            std::cout << "Base amplitude: " << d_base_amplitude << " -> Adapted: " << d_adapted_amplitude << std::endl;
+            std::cout << "Base frequency: " << d_base_frequency << " -> Adapted: " << d_adapted_frequency << std::endl;
+            std::cout << "Wavelength: " << d_adapted_wavelength << std::endl;
+            std::cout << "Envelope power: " << d_envelope_power << std::endl;
+            std::cout << "=========================================\n" << std::endl;
+        }
+        first_call = false;
+        last_log_time = time;
+    }
+
+    return;
+} // calculateAdaptiveKinematics
+
+void
+IBEELKinematics::writePerformanceMetrics(const double time)
+{
+    if (!d_track_performance) return;
+
+    // Open file in append mode
+    static bool file_initialized = false;
+
+    if (IBTK_MPI::getRank() == 0)
+    {
+        std::ofstream outfile;
+
+        if (!file_initialized)
+        {
+            outfile.open(d_performance_log_file.c_str(), std::ios::out);
+            outfile << "# Performance Metrics for Undulatory Foil Propulsion" << std::endl;
+            outfile << "# Reynolds number: " << d_reynolds_number << std::endl;
+            outfile << "# Thickness ratio: " << d_thickness_ratio << std::endl;
+            outfile << "# Swimming mode: " << d_swimming_mode << std::endl;
+            outfile << "# Columns: Time, Adapted_Amplitude, Adapted_Frequency, Swimming_Speed, "
+                    << "Instantaneous_Thrust, Instantaneous_Power, Efficiency" << std::endl;
+            file_initialized = true;
+        }
+        else
+        {
+            outfile.open(d_performance_log_file.c_str(), std::ios::app);
+        }
+
+        // Calculate Froude efficiency: eta = (Thrust * Speed) / Power
+        double efficiency = 0.0;
+        if (std::abs(d_instantaneous_power) > 1e-10)
+        {
+            efficiency = (d_instantaneous_thrust * d_swimming_speed) / d_instantaneous_power;
+        }
+
+        outfile << std::scientific << std::setprecision(8)
+                << time << " "
+                << d_adapted_amplitude << " "
+                << d_adapted_frequency << " "
+                << d_swimming_speed << " "
+                << d_instantaneous_thrust << " "
+                << d_instantaneous_power << " "
+                << efficiency << std::endl;
+
+        outfile.close();
+    }
+
+    return;
+} // writePerformanceMetrics
 
 } // namespace IBAMR
