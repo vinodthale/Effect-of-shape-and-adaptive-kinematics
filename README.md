@@ -21,9 +21,18 @@ See `QUICKSTART.md` in the validation suite for benchmarking instructions.
 
 ## Overview
 
-This code implements the research described in:
-- **"Effects of Reynolds number and thickness on an undulatory self-propelled foil"**
-- **"Anguilliform and carangiform fish-inspired hydrodynamic study for an undulating hydrofoil: Effect of shape and adaptive kinematics"**
+This code is **inspired by and extends** the research described in:
+
+**Primary Reference**:
+- **Zhang, D., Pan, G., Chao, L., & Zhang, Y. (2018)**. "Effects of Reynolds number and thickness on an undulatory self-propelled foil." *Physics of Fluids*, 30(7), 071902. DOI: [10.1063/1.5034439](https://doi.org/10.1063/1.5034439)
+
+**Secondary Reference** (see separate validation suite):
+- **Gupta, S., Sharma, A., Agrawal, A., Thompson, M. C., & Hourigan, K. (2022)**. "Anguilliform and carangiform fish-inspired hydrodynamic study for an undulating hydrofoil: Effect of shape and adaptive kinematics"
+
+**Extensions in This Code** (beyond Zhang et al. 2018):
+- Reynolds-dependent adaptive amplitude and frequency modulation
+- Envelope power adaptation for anguilliform vs. carangiform modes
+- Extended parameter study framework
 
 ### Key Features
 
@@ -259,10 +268,25 @@ The implementation includes several biologically-inspired features:
 
 ## References
 
-1. **Effects of Reynolds number and thickness on an undulatory self-propelled foil** (PDF included)
-2. **Anguilliform and carangiform fish-inspired hydrodynamic study** (PDF included)
+### Primary References
+
+1. **Zhang, D., Pan, G., Chao, L., & Zhang, Y. (2018).** "Effects of Reynolds number and thickness on an undulatory self-propelled foil." *Physics of Fluids*, 30(7), 071902. https://doi.org/10.1063/1.5034439
+   - **PDF Location**: `Effects of Reynolds number and thickness on an undulatory self propelled foil.pdf`
+   - **GitHub**: https://github.com/vinodthale/Effect-of-shape-and-adaptive-kinematics
+
+2. **Gupta, S., Sharma, A., Agrawal, A., Thompson, M. C., & Hourigan, K. (2022).** "Anguilliform and carangiform fish-inspired hydrodynamic study for an undulating hydrofoil: Effect of shape and adaptive kinematics"
+   - **PDF Location**: `Anguilliform and carangiform fish-inspired hydrodynamic study for an undulating hydrofoil_ Effect of shape and adaptive kinematics.pdf`
+   - **Validation Suite**: `/home/user/Validation-Gupta2022/`
+
+### Supporting References
+
 3. IBAMR: An adaptive and distributed-memory parallel implementation of the immersed boundary method
 4. Lauder, G. V., & Tytell, E. D. (2006). Hydrodynamics of undulatory propulsion
+
+### Parameter Verification
+
+For detailed comparison of implementation parameters vs. Zhang et al. (2018), see:
+- `/home/user/PARAMETER_VERIFICATION_Zhang2018.md`
 
 ## Troubleshooting
 
