@@ -3,8 +3,8 @@ CMAKE_MINIMUM_REQUIRED(VERSION 3.15.0)
 
 # Source files for the undulatory foil simulation
 # with Reynolds number and thickness effects
-SET(SOURCE_FILES example.cpp IBEELKinematics.cpp)
-SET(HEADER_FILES IBEELKinematics.h)
+SET(SOURCE_FILES src/example.cpp src/IBEELKinematics.cpp)
+SET(HEADER_FILES src/IBEELKinematics.h)
 
 ADD_EXECUTABLE(main2d ${SOURCE_FILES} ${HEADER_FILES})
 
