@@ -84,18 +84,32 @@ A(s) = A_max × (s/L)^p
 ## File Structure
 
 ```
-├── IBEELKinematics.h              # Header file with new adaptive features
-├── IBEELKinematics.cpp            # Implementation of adaptive kinematics
-├── example.cpp                    # Main simulation driver
-├── input2d                        # Original baseline configuration
-├── input2d_Re1000_h004           # Low Re, standard thickness (anguilliform)
-├── input2d_Re5609_h006           # Baseline Re, intermediate thickness (mixed)
-├── input2d_Re10000_h008          # High Re, thick foil (carangiform)
-├── eel2d.vertex                   # Lagrangian mesh definition
-├── eel2d_straightswimmer.m       # MATLAB mesh generator
-├── pycodeforvetexshift.py        # Vertex position adjustment tool
-├── analyze_performance.py        # Python analysis script for results
-└── CMakeLists.txt                # Build configuration
+├── src/                           # Source files
+│   ├── IBEELKinematics.h         # Header file with adaptive features
+│   ├── IBEELKinematics.cpp       # Implementation of adaptive kinematics
+│   └── example.cpp               # Main simulation driver
+├── input_files/                   # IBAMR input configurations
+│   ├── input2d                   # Original baseline configuration
+│   ├── input2d_Re1000_h004      # Low Re, standard thickness (anguilliform)
+│   ├── input2d_Re5609_h006      # Baseline Re, intermediate thickness
+│   └── input2d_Re10000_h008     # High Re, thick foil (carangiform)
+├── mesh/                          # Mesh generation tools
+│   ├── eel2d_straightswimmer.m  # MATLAB mesh generator
+│   └── pycodeforvetexshift.py   # Vertex position adjustment tool
+├── scripts/                       # Analysis and automation scripts
+│   ├── analyze_performance.py   # Python analysis script for results
+│   └── run_parameter_study.sh   # Batch parameter study automation
+├── docs/                          # Documentation
+│   ├── papers/                   # Research papers
+│   │   ├── Zhang_2018.pdf       # Primary reference paper
+│   │   └── Gupta_2022.pdf       # Secondary reference
+│   ├── PARAMETER_VERIFICATION_Zhang2018.md
+│   ├── PARAMETER_COMPARISON_SUMMARY.md
+│   └── COMPREHENSIVE_ERROR_CHECK.md
+├── Zhang_2018/                    # Zhang et al. strict implementation
+├── eel2d.vertex                  # Lagrangian mesh (root for IBAMR access)
+├── CMakeLists.txt                # Build configuration
+└── README.md                     # This file
 ```
 
 ## Compilation
@@ -132,7 +146,7 @@ cd ..
 Run a simulation with a specific configuration:
 
 ```bash
-mpirun -np 6 ./build/main2d input2d_Re1000_h004
+mpirun -np 6 ./build/main2d input_files/input2d_Re1000_h004
 ```
 
 ### Parameter Study
@@ -141,16 +155,16 @@ Run multiple simulations to study Reynolds and thickness effects:
 
 ```bash
 # Low Reynolds number (viscous regime)
-mpirun -np 6 ./build/main2d input2d_Re1000_h004
+mpirun -np 6 ./build/main2d input_files/input2d_Re1000_h004
 
 # Baseline Reynolds number
-mpirun -np 6 ./build/main2d input2d
+mpirun -np 6 ./build/main2d input_files/input2d
 
 # Intermediate case
-mpirun -np 6 ./build/main2d input2d_Re5609_h006
+mpirun -np 6 ./build/main2d input_files/input2d_Re5609_h006
 
 # High Reynolds number (inertial regime)
-mpirun -np 6 ./build/main2d input2d_Re10000_h008
+mpirun -np 6 ./build/main2d input_files/input2d_Re10000_h008
 ```
 
 ## Configuration Parameters
@@ -213,10 +227,10 @@ Analyze results using the provided Python script:
 
 ```bash
 # Analyze all performance files in directory
-python analyze_performance.py
+python scripts/analyze_performance.py
 
 # Analyze specific files
-python analyze_performance.py performance_Re1000_h004.dat performance_Re10000_h008.dat
+python scripts/analyze_performance.py performance_Re1000_h004.dat performance_Re10000_h008.dat
 ```
 
 The script generates:
@@ -271,11 +285,11 @@ The implementation includes several biologically-inspired features:
 ### Primary References
 
 1. **Zhang, D., Pan, G., Chao, L., & Zhang, Y. (2018).** "Effects of Reynolds number and thickness on an undulatory self-propelled foil." *Physics of Fluids*, 30(7), 071902. https://doi.org/10.1063/1.5034439
-   - **PDF Location**: `Effects of Reynolds number and thickness on an undulatory self propelled foil.pdf`
+   - **PDF Location**: `docs/papers/Zhang_2018.pdf`
    - **GitHub**: https://github.com/vinodthale/Effect-of-shape-and-adaptive-kinematics
 
 2. **Gupta, S., Sharma, A., Agrawal, A., Thompson, M. C., & Hourigan, K. (2022).** "Anguilliform and carangiform fish-inspired hydrodynamic study for an undulating hydrofoil: Effect of shape and adaptive kinematics"
-   - **PDF Location**: `Anguilliform and carangiform fish-inspired hydrodynamic study for an undulating hydrofoil_ Effect of shape and adaptive kinematics.pdf`
+   - **PDF Location**: `docs/papers/Gupta_2022.pdf`
    - **Validation Suite**: `/home/user/Validation-Gupta2022/`
 
 ### Supporting References
@@ -286,7 +300,7 @@ The implementation includes several biologically-inspired features:
 ### Parameter Verification
 
 For detailed comparison of implementation parameters vs. Zhang et al. (2018), see:
-- `/home/user/PARAMETER_VERIFICATION_Zhang2018.md`
+- `docs/PARAMETER_VERIFICATION_Zhang2018.md`
 
 ## Troubleshooting
 
